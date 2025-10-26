@@ -1,0 +1,31 @@
+import time
+from math import inf
+from dijkstra import generar_grafo, dijkstra
+from floyd_warshall import generar_matriz_adyacencia, floyd_warshall
+
+def prueba_estres():
+    tamanos = [10, 50, 100, 200]
+    densidad = 0.3
+
+    print(f"{'Nodos':<10}{'Dijkstra (s)':<15}{'Floyd-Warshall (s)':<20}")
+    print("-" * 45)
+
+    for n in tamanos:
+        # Dijkstra 
+        grafo = generar_grafo(n, densidad)
+        inicio = time.time()
+        dijkstra(grafo, 0)
+        fin = time.time()
+        tiempo_dijkstra = fin - inicio
+
+        # Floyd-Warshall 
+        matriz = generar_matriz_adyacencia(n, densidad)
+        inicio = time.time()
+        floyd_warshall(matriz)
+        fin = time.time()
+        tiempo_floyd = fin - inicio
+
+        print(f"{n:<10}{tiempo_dijkstra:<15.6f}{tiempo_floyd:<20.6f}")
+
+if __name__ == "__main__":
+    prueba_estres()
