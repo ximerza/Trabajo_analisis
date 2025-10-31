@@ -1,5 +1,8 @@
 import time
 from math import inf
+import csv
+import os
+import psutil
 from dijkstra import generar_grafo, dijkstra
 from floyd_warshall import generar_matriz_adyacencia, floyd_warshall
 
@@ -27,5 +30,52 @@ def prueba_estres():
 
         print(f"{n:<10}{tiempo_dijkstra:<15.6f}{tiempo_floyd:<20.6f}")
 
+
+
+def prueba_sobrecarga(iteraciones=3):
+    tamanos = [10, 50, 100, 200]
+    densidad = 0.3
+    proceso = psutil.Process(os.getpid())
+
+    with open("resultados_stress_test.csv", "w", newline="") as archivo:
+        writer = csv.writer(archivo)
+        writer.writerow(["Nodos", "Algoritmo", "Tiempo (s)", "Memoria (MB)"])
+
+        print(f"{'Nodos':<10}{'Dijkstra (s)':<15}{'F.Warshall (s)':<15}{'Memoria (MB)':<15}")
+        print("-" * 60)
+
+        for n in tamanos:
+            tiempos_dijkstra = []
+            tiempos_floyd = []
+
+            for _ in range(iteraciones):
+
+                # ---- Dijkstra ----
+                grafo = generar_grafo(n, densidad)
+                inicio = time.perf_counter()
+                dijkstra(grafo, 0)
+                fin = time.perf_counter()
+                tiempo_dijkstra = fin - inicio
+                tiempos_dijkstra.append(tiempo_dijkstra)
+
+                memoria = proceso.memory_info().rss / (1024 * 1024)
+                writer.writerow([n, "Dijkstra", f"{tiempo_dijkstra:.6f}", f"{memoria:.2f}"])
+
+                # ---- Floyd-Warshall ----
+                matriz = generar_matriz_adyacencia(n, densidad)
+                inicio = time.perf_counter()
+                floyd_warshall(matriz)
+                fin = time.perf_counter()
+                tiempo_floyd = fin - inicio
+                tiempos_floyd.append(tiempo_floyd)
+
+                memoria = proceso.memory_info().rss / (1024 * 1024)
+                writer.writerow([n, "Floyd-Warshall", f"{tiempo_floyd:.6f}", f"{memoria:.2f}"])
+
+            print(f"{n:<10}{sum(tiempos_dijkstra)/iteraciones:<15.6f}{sum(tiempos_floyd)/iteraciones:<15.6f}{memoria:<15.2f}")
+
+
 if __name__ == "__main__":
     prueba_estres()
+    prueba_sobrecarga()
+
